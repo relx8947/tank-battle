@@ -63,8 +63,6 @@
       map[br - 2][bc] = BRICK;
       map[br - 2][bc + 1] = BRICK;
     }
-    map[br][bc - 2] = BRICK;
-    map[br][bc + 2] = BRICK;
     baseAlive = true;
     baseHP = 3;
   }
