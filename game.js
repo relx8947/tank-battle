@@ -52,18 +52,26 @@
     // 基地：底部中间
     const bc = 6, br = 12;
     map[br][bc] = BASE;
-    // 基地周围砖墙保护
-    map[br - 1][bc - 1] = BRICK;
-    map[br - 1][bc] = BRICK;
-    map[br - 1][bc + 1] = BRICK;
-    map[br][bc - 1] = BRICK;
-    map[br][bc + 1] = BRICK;
+    // 基地周围双层加固：内层钢墙，外层砖墙
+    map[br - 1][bc - 1] = STEEL;
+    map[br - 1][bc] = STEEL;
+    map[br - 1][bc + 1] = STEEL;
+    map[br][bc - 1] = STEEL;
+    map[br][bc + 1] = STEEL;
+    if (br - 2 >= 0) {
+      map[br - 2][bc - 1] = BRICK;
+      map[br - 2][bc] = BRICK;
+      map[br - 2][bc + 1] = BRICK;
+    }
+    map[br][bc - 2] = BRICK;
+    map[br][bc + 2] = BRICK;
     baseAlive = true;
+    baseHP = 3;
   }
 
   // ---- 游戏状态 ----
   let player, bullets, enemies, particles;
-  let score, lives, stage, enemiesRemaining, baseAlive;
+  let score, lives, stage, enemiesRemaining, baseAlive, baseHP;
   let running = false, paused = false, gameOver = false;
   let spawnTimer = 0;
   const ENEMY_PER_STAGE = 8;
@@ -224,6 +232,23 @@
       spawnTimer = 120;
     }
 
+    // 子弹互相对冲：任意两颗子弹相撞则一起消除
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      const a = bullets[i];
+      if (!a) continue;
+      for (let j = i - 1; j >= 0; j--) {
+        const b2 = bullets[j];
+        if (!b2) continue;
+        if (a.x < b2.x + 6 && a.x + 6 > b2.x &&
+            a.y < b2.y + 6 && a.y + 6 > b2.y) {
+          explode(a.x - TANK / 2 + 3, a.y - TANK / 2 + 3, 6, "#fff");
+          bullets.splice(i, 1);
+          bullets.splice(j, 1);
+          break;
+        }
+      }
+    }
+
     // 子弹
     for (let i = bullets.length - 1; i >= 0; i--) {
       const b = bullets[i];
@@ -251,11 +276,15 @@
           bullets.splice(i, 1); continue;
         }
         if (t === BASE) {
-          map[r][c] = EMPTY;
-          baseAlive = false;
-          explode(c * TILE, r * TILE, 24, "#f7d51d");
+          baseHP--;
+          explode(c * TILE, r * TILE, 10, "#f7d51d");
           bullets.splice(i, 1);
-          endGame(false);
+          if (baseHP <= 0) {
+            map[r][c] = EMPTY;
+            baseAlive = false;
+            explode(c * TILE, r * TILE, 24, "#f7d51d");
+            endGame(false);
+          }
           continue;
         }
       }
