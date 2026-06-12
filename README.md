@@ -1,6 +1,6 @@
 # 坦克大战 · TANK BATTLE
 
-经典街机风格的网页版坦克大战，纯 HTML + CSS + JavaScript（Canvas）实现，无需任何依赖，打开即玩。
+经典街机风格的网页版坦克大战，使用 **TypeScript + Vite + Canvas** 实现，模块化、强类型，开发体验更佳。
 
 ## 玩法
 
@@ -20,16 +20,28 @@
 - 坦克自动车道居中，转弯顺畅不卡墙
 - 经典街机 HUD：关卡 / 得分 / 生命 / 剩余敌军
 
-## 运行
+## 开发
 
-直接用浏览器打开 `index.html` 即可。
+```bash
+npm install      # 安装依赖
+npm run dev      # 启动开发服务器 (热更新)
+npm run build    # 类型检查 + 生产构建到 dist/
+npm run preview  # 本地预览构建产物
+npm run typecheck # 仅类型检查
+```
+
+## 项目结构
 
 ```
-open index.html
+index.html          页面结构与街机外壳
+src/
+  main.ts           入口
+  game.ts           游戏主循环与状态机
+  map.ts            地图加载与碰撞查询
+  renderer.ts       Canvas 绘制
+  input.ts          键盘输入
+  ui.ts             HUD 与遮罩层
+  constants.ts      常量、方向、瓦片枚举
+  types.ts          实体类型定义
+  style.css         街机风格样式
 ```
-
-## 文件结构
-
-- `index.html` — 页面结构与街机外壳
-- `style.css` — 街机风格样式
-- `game.js` — 游戏核心逻辑
