@@ -135,21 +135,41 @@
            a.y < b.y + TANK && a.y + TANK > b.y;
   }
 
+  const ALIGN = (TILE - TANK) / 2; // 坦克在格内的居中偏移
+
+  function snapToLane(v) {
+    // 把坐标吸附到最近的车道中心 (格边界 + 居中偏移)
+    return Math.round((v - ALIGN) / TILE) * TILE + ALIGN;
+  }
+
+  function blocked(tank, x, y) {
+    if (x < 0 || y < 0 || x + TANK > SIZE || y + TANK > SIZE) return true;
+    if (rectHitsMap(x, y, TANK, TANK).solid) return true;
+    const others = [player, ...enemies].filter(t => t && t !== tank);
+    for (const o of others) {
+      if (o.x < x + TANK && o.x + TANK > x && o.y < y + TANK && o.y + TANK > y) return true;
+    }
+    return false;
+  }
+
   function tryMove(tank, dir) {
     tank.dir = dir;
     const d = DIRS[dir];
+
+    // 先沿垂直方向自动归位到车道中心，避免擦边卡墙
+    if (d.x !== 0) tank.y = approach(tank.y, snapToLane(tank.y), tank.speed);
+    else tank.x = approach(tank.x, snapToLane(tank.x), tank.speed);
+
     const nx = tank.x + d.x * tank.speed;
     const ny = tank.y + d.y * tank.speed;
-    if (nx < 0 || ny < 0 || nx + TANK > SIZE || ny + TANK > SIZE) return;
-    if (rectHitsMap(nx, ny, TANK, TANK).solid) return;
-    // 与其它坦克碰撞
-    const others = [player, ...enemies].filter(t => t && t !== tank);
-    const probe = { x: nx, y: ny };
-    for (const o of others) {
-      if (o.x < probe.x + TANK && o.x + TANK > probe.x &&
-          o.y < probe.y + TANK && o.y + TANK > probe.y) return;
+    if (!blocked(tank, nx, ny)) {
+      tank.x = nx; tank.y = ny;
     }
-    tank.x = nx; tank.y = ny;
+  }
+
+  function approach(cur, target, step) {
+    if (Math.abs(target - cur) <= step) return target;
+    return cur + Math.sign(target - cur) * step;
   }
 
   function fire(tank) {
